@@ -5,8 +5,10 @@
 #
 # This is blatlantly copied almost word from word from this twitter
 # oauth library : http://code.google.com/p/oauth-python-twitter/
+# with a litle bit of adaption for DailyBurn API
 #
 import urllib2
+import urllib
 import urlparse
 import time
 
@@ -53,29 +55,31 @@ class OAuthApi:
         '''
         # Build the extra parameters dict
         extra_params = {}
-        if parameters:
+        if parameters and http_method != "POST":
             extra_params.update(parameters)
         
         req = self._makeOAuthRequest(url, params=extra_params, 
                                      http_method=http_method)
+
 
         # Get a url opener that can handle Oauth basic auth
         opener = self._GetOpener()
 
         if http_method == "POST":
             encoded_post_data = req.to_postdata()
-            # Removed the following line due to the fact that OAuth2 request objects do not have this function
-            # This does not appear to have any adverse impact on the operation of the toolset
-            #url = req.get_normalized_http_url()
+            if parameters:
+                params = urllib.urlencode(parameters)
+                url = "%s?%s" % (url, params)
         else:
             url = req.to_url()
             encoded_post_data = ""
-            
+
         if encoded_post_data:
             url_data = opener.open(url, encoded_post_data).read()
         else:
             url_data = opener.open(url).read()
         opener.close()
+
 
         # Always return the latest version
         return url_data
@@ -150,9 +154,6 @@ class OAuthApi:
         resp, content = client.request(url, "POST")
         return dict(urlparse.parse_qsl(content))
 
-    def UrlCall(self, call, type="GET", parameters={}):
-        print "https://dailyburn.com/api/" + call + ".json", type, parameters
-        
     def ApiCall(self, call, type="GET", parameters={}):
         '''Calls the Dailyburn API
         
@@ -180,7 +181,15 @@ class OAuthApi:
         except urllib2.URLError, e:
             return e
         else:
-            return simplejson.loads(json)
+            json = json.strip() #TODO: at the moment some call just
+                                #come back with one space hugh!
+            if not json: #no answer so like a DELETE POST or other
+                return
+            try:
+                return simplejson.loads(json)
+            except(simplejson.decoder.JSONDecodeError): #TODO: Proper own exceptions
+                print "Not a Json Payload: %s" % (str(json))
+                raise
 
 if __name__ == '__main__':
     pass
