@@ -8,5 +8,6 @@ setup(
     version=__version__,
     description='OAuth Dailyburn',
     author='Chmouel Boudjnah',
-    packages=['dailyburn']
+    packages=['dailyburn'],
+    license='MPL'
 )
