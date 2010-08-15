@@ -39,16 +39,16 @@ class API(object):
 
     def FoodFavoriteAdd(self, foodId):
         foodId = int(foodId) #Todo: proper type checking
-        return self.oauth.ApiCall("foods/add_favorite", "POST", { "id" : foodId })
+        return self.oauth.ApiCall("foods/%d/add_favorite" % (foodId), "POST")
         
     def FoodFavoriteRemove(self, foodId):
         foodId = int(foodId) #Todo: proper type checking
-        return self.oauth.ApiCall("foods/delete_favorite", "POST", { "id" : foodId })
+        return self.oauth.ApiCall("foods/%d/delete_favorite" % (foodId), "POST")
 
     def FoodMeals(self):
         return self.oauth.ApiCall("foods/meal_names", "GET", {})        
 
-    def FoodLog(self, **dico):
+    def FoodLogEntries(self, **dico):
         """  Getting Food Log Entries.
 
         This call accepts 1 optional parameter named
@@ -57,7 +57,7 @@ class API(object):
         user's local timezone."""
         return self.oauth.ApiCall("food_log_entries", "GET", dico)
         
-    def FoodLogEntry(self, **dico):
+    def FoodLogAdd(self, **dico):
         """Creating Food Log Entries
 
         Required parameters:
@@ -79,4 +79,9 @@ class API(object):
         for _type in ('food_id', 'servings_eaten'):
             if not _type in dico:
                 raise Exception("%s is missing" % _type) 
-        pass
+
+        processed_dico = {}
+        for key in dico:
+             processed_dico["food_log_entry[%s]" % key] = dico[key] 
+
+        return self.oauth.ApiCall("food_log_entries", "POST", processed_dico)
