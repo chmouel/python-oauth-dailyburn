@@ -65,11 +65,11 @@ class OAuthApi:
         # Get a url opener that can handle Oauth basic auth
         opener = self._GetOpener()
 
+        encoded_post_data = ""
         if http_method == "POST":
             encoded_post_data = req.to_postdata()
-        else:
+        elif http_method == "GET":
             url = req.to_url()
-            encoded_post_data = ""
 
         if encoded_post_data:
             url_data = opener.open(url, encoded_post_data).read()
@@ -107,8 +107,12 @@ class OAuthApi:
         
         if not token:
             token = self._access_token
+
         request = oauth.Request(method=http_method,url=url,parameters=params)
         request.sign_request(self._signature_method, self._Consumer, token)
+
+        print "DEBUG: Method: %s URL=%s PARAM=%s REQUEST: %s" % (str(http_method), str(url), str(params), str(request))
+
         return request
 
     def getAuthorizationURL(self, token, url=AUTHORIZATION_URL):
@@ -155,7 +159,7 @@ class OAuthApi:
         
         Args:
         call: The name of the api call (ie. account/rate_limit_status)
-        type: One of "GET" or "POST"
+        type: One of "GET" or "POST" or "DELETE"
         parameters: Parameters to pass to the Dailyburn API call
         Returns:
         Returns the Dailyburn.User object
@@ -163,7 +167,10 @@ class OAuthApi:
         # We use this try block to make the request in case we run into one of Dailyburn's many 503 (temporarily unavailable) errors.
         # Other error handling may end up being useful as well.
         try:
-            json = self._FetchUrl("https://dailyburn.com/api/" + call + ".json", type, parameters)
+            suffix=""
+            if type in ("GET", "POST"):
+                suffix=".json"
+            json = self._FetchUrl("https://dailyburn.com/api/%s%s" % (call, suffix), type, parameters)
             # This is the most common error type you'll get.
             # Dailyburn is good about returning codes, too Chances are
             # that most of the time you run into this, it's going to

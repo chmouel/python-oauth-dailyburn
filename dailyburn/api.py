@@ -85,3 +85,16 @@ class API(object):
              processed_dico["food_log_entry[%s]" % key] = dico[key] 
 
         return self.oauth.ApiCall("food_log_entries", "POST", processed_dico)
+
+    def FoodLogDelete(self, food_log_id):
+        """Creating Food Log Entries
+
+        Required parameters:
+        ====================
+        
+        food_log_id - The id of the food log entry wanted to be deleted.
+        """
+        food_log_id = int(food_log_id) #TODO: proper type checking
+
+        return self.oauth.ApiCall("food_log_entries/%d" % (food_log_id), "DELETE")
+    
