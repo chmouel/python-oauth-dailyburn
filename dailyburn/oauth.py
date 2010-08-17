@@ -55,9 +55,9 @@ class OAuthApi:
         '''
         # Build the extra parameters dict
         extra_params = {}
-        if parameters and http_method != "POST":
+        if parameters:
             extra_params.update(parameters)
-        
+
         req = self._makeOAuthRequest(url, params=extra_params, 
                                      http_method=http_method)
 
@@ -67,9 +67,6 @@ class OAuthApi:
 
         if http_method == "POST":
             encoded_post_data = req.to_postdata()
-            if parameters:
-                params = urllib.urlencode(parameters)
-                url = "%s?%s" % (url, params)
         else:
             url = req.to_url()
             encoded_post_data = ""
@@ -79,7 +76,6 @@ class OAuthApi:
         else:
             url_data = opener.open(url).read()
         opener.close()
-
 
         # Always return the latest version
         return url_data
@@ -184,7 +180,7 @@ class OAuthApi:
             json = json.strip() #TODO: at the moment some call just
                                 #come back with one space hugh!
             if not json: #no answer so like a DELETE POST or other
-                return
+                return {}
             try:
                 return simplejson.loads(json)
             except(simplejson.decoder.JSONDecodeError): #TODO: Proper own exceptions
